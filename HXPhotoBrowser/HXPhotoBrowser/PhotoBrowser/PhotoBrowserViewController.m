@@ -13,6 +13,8 @@
 
 @interface PhotoBrowserViewController ()<UIPageViewControllerDataSource,UIPageViewControllerDelegate,PhotoViewControllerDelegate>
 
+@property (nonatomic, strong) UIButton *pageCountButton;
+
 @end
 
 @implementation PhotoBrowserViewController{
@@ -24,6 +26,7 @@
 }
 
 #pragma mark - 构造函数
+
 + (instancetype)photoBrowserWithSelectedIndex:(NSInteger)selectedIndex urls:(NSArray<NSString *> *)urls parentImageViews:(NSArray<UIImageView *> *)parentImageViews {
     return [[self alloc] initWithSelectedIndex:selectedIndex
                                           urls:urls
@@ -51,6 +54,7 @@
     return self;
 }
 
+#pragma mark - LifeCircle
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -61,6 +65,8 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+#pragma mark - PrivateMethods
 
 - (void)setupUI{
     pageViewControllers = [[UIPageViewController alloc]
@@ -80,9 +86,57 @@
     [self addChildViewController:pageViewControllers];
     [pageViewControllers didMoveToParentViewController:self];
     currentViewer = viewer;
+    if (self.arrayImageStr.count == 1) {
+        self.pageCountButton.hidden = YES;
+    }
+    [self setPageButtonIndex:_photos.selectedIndex];
 }
 
+- (void)setPageButtonIndex:(NSInteger)index {
+    CGFloat mainScale = [UIScreen mainScreen].scale;
+    self.pageCountButton.hidden = (_photos.urls.count == 1);
+    NSShadow * shadow = [[NSShadow alloc] init];
+    shadow.shadowColor = [UIColor blackColor];
+    shadow.shadowBlurRadius = 1.0;
+    shadow.shadowOffset = CGSizeMake(1.0/mainScale, 1.0/mainScale);
+    NSMutableAttributedString *attributeText = [[NSMutableAttributedString alloc]
+                                                initWithString:[NSString stringWithFormat:@"%zd", index + 1]
+                                                attributes:@{NSFontAttributeName: [UIFont boldSystemFontOfSize:16],
+                                                             NSForegroundColorAttributeName:[UIColor whiteColor],
+                                                             NSShadowAttributeName:shadow}];
+    [attributeText appendAttributedString:[[NSAttributedString alloc]
+                                           initWithString:[NSString stringWithFormat:@" / %zd", _photos.urls.count]
+                                           attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:12],
+                                                        NSForegroundColorAttributeName:[UIColor whiteColor],NSShadowAttributeName:shadow}]];
+    [self.pageCountButton setAttributedTitle:attributeText forState:UIControlStateNormal];
+}
 
+- (CGRect)getImageViewSizeWithImage:(UIImage *)image{
+    CGFloat widthScale = [UIScreen mainScreen].bounds.size.width/image.size.width;
+    CGFloat viewY;;
+    CGFloat hei = image.size.height * widthScale;
+    CGFloat wid = image.size.width * widthScale;
+    if (image.size.width/image.size.height > [UIScreen mainScreen].bounds.size.width/[UIScreen mainScreen].bounds.size.height) {
+        viewY = ([UIScreen mainScreen].bounds.size.height - hei)*0.5;
+    }else{
+        viewY = 0;
+    }
+    return CGRectMake(0,viewY, wid, hei);
+}
+
+#pragma mark - LazyLoad
+
+-(UIButton *)pageCountButton{
+    CGFloat ScreenHeight = [UIScreen mainScreen].bounds.size.height;
+    CGFloat ScreenWidth = [UIScreen mainScreen].bounds.size.width;
+    if (!_pageCountButton) {
+        _pageCountButton = [[UIButton alloc]initWithFrame:CGRectMake(0, ScreenHeight - 50, ScreenWidth, 50)];
+        _pageCountButton.backgroundColor = [UIColor clearColor];
+        [self setPageButtonIndex:_photos.selectedIndex];
+        [self.view addSubview:_pageCountButton];
+    }
+    return _pageCountButton;
+}
 
 #pragma mark - UIPageViewControllerDelegate
 
@@ -119,7 +173,10 @@
     PhotoViewController *viewe = pageViewController.viewControllers[0];
     _photos.selectedIndex = viewe.index;
     currentViewer = viewe;
+    [self setPageButtonIndex:viewe.index];
 }
+
+#pragma mark - PhotoViewControllerDelegate
 
 - (void)imageDidClick{
     
@@ -128,18 +185,7 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (CGRect)getImageViewSizeWithImage:(UIImage *)image{
-    CGFloat widthScale = [UIScreen mainScreen].bounds.size.width/image.size.width;
-    CGFloat viewY;;
-    CGFloat hei = image.size.height * widthScale;
-    CGFloat wid = image.size.width * widthScale;
-    if (image.size.width/image.size.height > [UIScreen mainScreen].bounds.size.width/[UIScreen mainScreen].bounds.size.height) {
-        viewY = ([UIScreen mainScreen].bounds.size.height - hei)*0.5;
-    }else{
-        viewY = 0;
-    }
-    return CGRectMake(0,viewY, wid, hei);
-}
+
 
 
 @end

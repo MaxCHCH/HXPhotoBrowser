@@ -23,16 +23,7 @@
 
 @implementation PhotoViewController
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    [self prepareUI];
-    [self loadImage];
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+#pragma mark - 构造函数
 
 - (instancetype)initWithImage:(NSString *)imageStr index:(NSInteger)index
 {
@@ -48,6 +39,21 @@
     }
     return self;
 }
+
+#pragma mark - LifeCircle
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self prepareUI];
+    [self loadImage];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - PrivateMethods
 
 -(void)prepareUI{
     
@@ -75,30 +81,6 @@
     } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
         [self adjustFrames];
     }];
-}
-
--(void)tapImage:(UITapGestureRecognizer *)recognizer{
-    if ([self.delegate respondsToSelector:@selector(imageDidClick)]) {
-        if (self.backScroller.zoomScale > 1.0) {
-            [self.backScroller setZoomScale:1.0 animated:YES];
-        }
-        [self.delegate imageDidClick];
-    }
-}
-
-- (void)doubleTap:(UIGestureRecognizer *)recognizer{
-    self.isBig = !self.isBig;
-    CGPoint touchPoint = [recognizer locationInView:self.view];
-    if (self.backScroller.zoomScale <= 1.0) {
-        
-        CGFloat scaleX = touchPoint.x + self.backScroller.contentOffset.x;//需要放大的图片的X点
-        CGFloat sacleY = touchPoint.y + self.backScroller.contentOffset.y;//需要放大的图片的Y点
-        [self.backScroller zoomToRect:CGRectMake(scaleX, sacleY, 10, 10) animated:YES];
-        
-    } else {
-        [self.backScroller setZoomScale:1.0 animated:YES]; //还原
-    }
-    
 }
 
 - (void)adjustFrames
@@ -156,14 +138,39 @@
     return actualCenter;
 }
 
+#pragma mark - Actions
+
+-(void)tapImage:(UITapGestureRecognizer *)recognizer{
+    if ([self.delegate respondsToSelector:@selector(imageDidClick)]) {
+        if (self.backScroller.zoomScale > 1.0) {
+            [self.backScroller setZoomScale:1.0 animated:YES];
+        }
+        [self.delegate imageDidClick];
+    }
+}
+
+- (void)doubleTap:(UIGestureRecognizer *)recognizer{
+    self.isBig = !self.isBig;
+    CGPoint touchPoint = [recognizer locationInView:self.view];
+    if (self.backScroller.zoomScale <= 1.0) {
+        
+        CGFloat scaleX = touchPoint.x + self.backScroller.contentOffset.x;//需要放大的图片的X点
+        CGFloat sacleY = touchPoint.y + self.backScroller.contentOffset.y;//需要放大的图片的Y点
+        [self.backScroller zoomToRect:CGRectMake(scaleX, sacleY, 10, 10) animated:YES];
+        
+    } else {
+        [self.backScroller setZoomScale:1.0 animated:YES]; //还原
+    }
+    
+}
+
+
 #pragma mark UIScrollViewDelegate
-- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
-{
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
     return self.imageView;
 }
 
-- (void)scrollViewDidZoom:(UIScrollView *)scrollView
-{
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView{
     self.imageView.center = [self centerOfScrollViewContent:scrollView];
 }
 

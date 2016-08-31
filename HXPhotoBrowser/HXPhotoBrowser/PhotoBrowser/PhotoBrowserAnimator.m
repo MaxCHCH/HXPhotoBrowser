@@ -87,6 +87,8 @@
     }];
 }
 
+#pragma mark - PrivateMethods
+
 - (CGRect)presentRectWithImageView:(UIImageView *)imageView {
     UIImage *image = imageView.image;
     
